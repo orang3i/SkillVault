@@ -1,13 +1,9 @@
 package com.orang3i.skillvault.dto;
 
-import jakarta.validation.constraints.Max;
-import jakarta.validation.constraints.Min;
-import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.Size;
+import jakarta.validation.constraints.*;
 
-import java.util.UUID;
+public class NodeUpdateRequest {
 
-public class NodeCreateRequest {
     @NotBlank(message = "Title is required and cannot be blank")
     @Size(min = 1, max = 200, message = "Title must be between 1 and 200 characters")
     public String title;
@@ -21,6 +17,4 @@ public class NodeCreateRequest {
     @Min(value = 0, message = "Mastery must be at least 0")
     @Max(value = 100, message = "Mastery cannot exceed 100")
     public int mastery;
-
-    public UUID parentId; // null is valid for root nodes
 }

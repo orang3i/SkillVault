@@ -1,11 +1,9 @@
 package com.orang3i.skillvault.controller;
 
 
-import com.orang3i.skillvault.dto.NodeCreateRequest;
-import com.orang3i.skillvault.dto.NodeMoveRequest;
-import com.orang3i.skillvault.dto.NodeResponse;
-import com.orang3i.skillvault.dto.NodeTreeResponse;
+import com.orang3i.skillvault.dto.*;
 import com.orang3i.skillvault.service.NodeService;
+import jakarta.validation.Valid;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -21,13 +19,18 @@ public class NodeController {
     }
 
     @PostMapping
-    public NodeResponse create(@RequestBody NodeCreateRequest req) {
+    public NodeResponse create(@Valid @RequestBody NodeCreateRequest req) {
         return nodeService.create(req);
     }
 
     @GetMapping("/{id}")
     public NodeResponse get(@PathVariable UUID id) {
         return nodeService.get(id);
+    }
+
+    @PutMapping("/{id}")
+    public NodeResponse update(@PathVariable UUID id, @Valid @RequestBody NodeUpdateRequest req) {
+        return nodeService.update(id, req);
     }
 
     @GetMapping

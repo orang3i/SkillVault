@@ -3,7 +3,9 @@ package com.orang3i.skillvault.service;
 import com.orang3i.skillvault.dto.NodeCreateRequest;
 import com.orang3i.skillvault.dto.NodeResponse;
 import com.orang3i.skillvault.dto.NodeTreeResponse;
+import com.orang3i.skillvault.dto.NodeUpdateRequest;
 import com.orang3i.skillvault.entity.Node;
+import com.orang3i.skillvault.exception.NotFoundException;
 import com.orang3i.skillvault.repository.NodeRepository;
 import jakarta.transaction.Transactional;
 import org.springframework.stereotype.Service;
@@ -22,17 +24,9 @@ public class NodeService {
 
     @Transactional
     public NodeResponse create(NodeCreateRequest req) {
-        if (req.title == null || req.title.isBlank()) {
-            throw new IllegalArgumentException("title is required");
-        }
-
-        if (req.mastery < 0 || req.mastery > 100) {
-            throw new IllegalArgumentException("mastery must be 0..100");
-        }
-
         Node parent = null; //if node is parent node then parent of that node remains null
         if (req.parentId != null) {
-            parent = nodeRepository.findById(req.parentId).orElseThrow(() -> new IllegalArgumentException("parent not found"));
+            parent = nodeRepository.findById(req.parentId).orElseThrow(() -> new NotFoundException("parent not found"));
         }
 
         Node node = new Node();
@@ -47,9 +41,24 @@ public class NodeService {
         return toResponse(saved);
     }
 
+    @Transactional
+    public NodeResponse update(UUID id, NodeUpdateRequest req) {
+        Node node = nodeRepository.findById(id)
+                .orElseThrow(() -> new NotFoundException("Node not found"));
+
+        // Update fields
+        node.setTitle(req.title);
+        node.setDescription(req.description);
+        node.setCategory(req.category);
+        node.setMastery(req.mastery);
+
+        Node saved = nodeRepository.save(node);
+        return toResponse(saved);
+    }
+
     @Transactional()
     public NodeResponse get(UUID id) {
-        Node node = nodeRepository.findById(id).orElseThrow(() -> new IllegalArgumentException("node not found"));
+        Node node = nodeRepository.findById(id).orElseThrow(() -> new NotFoundException("node not found"));
         return toResponse(node);
     }
 
@@ -63,14 +72,14 @@ public class NodeService {
     @Transactional
     public void delete(UUID id) {
         if (!nodeRepository.existsById(id)) {
-            throw new IllegalArgumentException("node not found");
+            throw new NotFoundException("node not found");
         }
         nodeRepository.deleteById(id);
     }
 
     @Transactional
     public NodeTreeResponse getSubtree(UUID id) {
-        Node root = nodeRepository.findById(id).orElseThrow(() -> new IllegalArgumentException("node not found"));
+        Node root = nodeRepository.findById(id).orElseThrow(() -> new NotFoundException("node not found"));
         return buildTree(root);
     }
 
@@ -93,11 +102,11 @@ public class NodeService {
 
     @jakarta.transaction.Transactional
     public NodeResponse move(UUID nodeId, UUID newParentId) {
-        Node node = nodeRepository.findById(nodeId).orElseThrow(() -> new IllegalArgumentException("node not found"));
+        Node node = nodeRepository.findById(nodeId).orElseThrow(() -> new NotFoundException("node not found"));
 
         Node newParent = null;
         if (newParentId != null) {
-            newParent = nodeRepository.findById(newParentId).orElseThrow(() -> new IllegalArgumentException("new parent not found"));
+            newParent = nodeRepository.findById(newParentId).orElseThrow(() -> new NotFoundException("new parent not found"));
         }
 
         // can't move under itself
